@@ -8,28 +8,7 @@ class Zoo:
         password = "1478",
         database = "zoo"
         )
-        self.cursor = self.mydb.cursor()
-        self.create_tables()
-
-    def create_tables(self):
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS animal (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                nom VARCHAR(255),
-                race VARCHAR(255),
-                id_cage INT,
-                date_naissance DATE,
-                pays_origine VARCHAR(255)
-            )
-        """)
-
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS cage (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                superficie INT,
-                capacite_max INT
-            )
-        """)
+        self.cursor = self.mydb.cursor()       
 
     def add_animal(self, nom, race, id_cage, date_naissance, pays_origine):
         self.cursor.execute("""
@@ -49,14 +28,26 @@ class Zoo:
             WHERE id = %s
         """, (new_nom, new_race, new_id_cage, new_date_naissance, new_pays_origine, animal_id))
         self.mydb.commit()
+    
+    def add_cage(self, superficie, capacite_max):
+        self.cursor.execute("""
+            INSERT INTO cage (superficie, capacite_max)
+            VALUES (%s, %s)
+        """, (superficie, capacite_max))
+        self.mydb.commit()
+        
+    def modify_cage(self, cage_id, new_superficie, new_capacite_max):
+        self.cursor.execute("""
+            UPDATE cage
+            SET superficie = %s, capacite_max = %s
+            WHERE id = %s
+        """, (new_superficie, new_capacite_max, cage_id))
+        self.mydb.commit()
 
-    def display_all_animals(self):
-        self.cursor.execute("SELECT * FROM animal")
-        all_animals = self.cursor.fetchall()
-        print("Liste des animaux dans le zoo:")
-        for animal in all_animals:
-            print(animal)
-
+    def remove_cage(self, cage_id):
+        self.cursor.execute("DELETE FROM cage WHERE id = %s", (cage_id,))
+        self.mydb.commit()
+        
     def display_animals_in_cages(self):
         self.cursor.execute("""
             SELECT cage.id, cage.superficie, cage.capacite_max, GROUP_CONCAT(animal.nom SEPARATOR ', ') AS animaux_present
@@ -69,7 +60,15 @@ class Zoo:
         for cage in animals_in_cages:
             print(cage)
 
+    def display_all_animals(self):
+        self.cursor.execute("SELECT * FROM animal")
+        all_animals = self.cursor.fetchall()
+        print("Liste des animaux dans le zoo:")
+        for animal in all_animals:
+            print(animal)    
+
     def calculate_total_superficie(self):
+        # Calculer la superficie totale de toutes les cages
         self.cursor.execute("SELECT SUM(superficie) FROM cage")
         total_superficie = self.cursor.fetchone()[0]
         print(f"Superficie totale de toutes les cages : {total_superficie} m²")
@@ -77,26 +76,24 @@ class Zoo:
     def close_connection(self):
         self.mydb.close()
 
-# Exemple d'utilisation de la classe Zoo
 zoo = Zoo()
 
-# Ajouter un animal
-zoo.add_animal("Lion", "Félin", 1, "2022-01-30", "Afrique")
-
-# Modifier un animal
-zoo.modify_animal(1, "Lion Majestueux", "Félin Royal", 1, "2022-01-30", "Afrique du Sud")
-
-# Supprimer un animal
-zoo.remove_animal(1)
-
-# Afficher tous les animaux
+zoo.add_animal("Tigre", "Félin", 1, "2021-02-26", "Afrique")
+zoo.add_animal("Elephant", "Mammifère", 2,"2016-06-18", "Europe")
+zoo.add_animal("Panthère Noir", "Félin", 3, "2013-05-17", "Malaisie")
+zoo.add_animal("Lion", "Félin", 4, "2011-04-04", "Afrique")
 zoo.display_all_animals()
 
-# Afficher les animaux dans les cages
+zoo.modify_animal(1, "Tigre à dent de Sabre", "Félin Royal", 1, "2019-07-09", "Amerique du Sud")
+zoo.display_all_animals()
+
+zoo.remove_animal(4)
+zoo.display_all_animals()
+
 zoo.display_animals_in_cages()
 
-# Calculer la superficie totale
 zoo.calculate_total_superficie()
 
-# Fermer la connexion à la base de données
 zoo.close_connection()
+
+
