@@ -1,5 +1,7 @@
 import mysql.connector
 
+"""Creation des tables par le terminal SQL"""
+
 class Zoo:
     def __init__(self):
         self.mydb = mysql.connector.connect(
